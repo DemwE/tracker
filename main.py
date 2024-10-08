@@ -5,6 +5,7 @@ import os
 import sys
 import argparse
 import logging
+import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -116,6 +117,10 @@ def draw_rectangle(event, x, y, flags, param):
 cv2.namedWindow('Full Camera View')
 cv2.setMouseCallback('Full Camera View', draw_rectangle)
 
+# Initialize FPS calculation
+start_time = time.time()
+frame_count = 0
+
 while True:
     # Capture frame-by-frame
     ret, frame = cap.read()
@@ -156,6 +161,24 @@ while True:
 
     # Draw the ROI rectangle on the full frame
     cv2.rectangle(frame, (roi_x1, roi_y1), (roi_x2, roi_y2), (255, 0, 0), 2)
+
+    # Calculate and display FPS
+    frame_count += 1
+    elapsed_time = time.time() - start_time
+    if elapsed_time > 1:
+        fps = frame_count / elapsed_time
+        frame_count = 0
+        start_time = time.time()
+    else:
+        fps = frame_count / elapsed_time
+
+    # Calculate position for the FPS counter in the bottom-right corner
+    text = f'FPS: {fps:.2f}'
+    (text_width, text_height), baseline = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
+    x = frame.shape[1] - text_width - 10
+    y = frame.shape[0] - baseline - 10
+
+    cv2.putText(frame, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
     # Display the full camera view
     cv2.imshow('Full Camera View', frame)
