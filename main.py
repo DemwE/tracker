@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # Argument parsing
 parser = argparse.ArgumentParser(description='YOLOv8 Object Detection with ROI')
-parser.add_argument('--model', type=str, default='yolov8m.pt', help='Path to YOLOv8 model file')
+parser.add_argument('--model', type=str, default='yolov8x.pt', help='Path to YOLOv8 model file')
 parser.add_argument('--camera', type=int, default=1, help='Camera index for video capture')
 parser.add_argument('--width', type=int, default=1280, help='Frame width')
 parser.add_argument('--height', type=int, default=720, help='Frame height')
@@ -143,6 +143,9 @@ while True:
         # Crop the frame to the ROI
         roi_frame = frame[roi_y1:roi_y2, roi_x1:roi_x2]
 
+        # Define the classes to detect
+        target_classes = ['car', 'bus', 'truck']
+
         # Perform object detection
         results = model(roi_frame)
 
@@ -152,9 +155,10 @@ while True:
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
                 label = result.names[int(box.cls)]
                 score = float(box.conf)  # Convert tensor to float
-                if score > args.threshold:
+                if score > args.threshold and label in target_classes:
                     cv2.rectangle(roi_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                    cv2.putText(roi_frame, f'{label} {score:.2f}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                    cv2.putText(roi_frame, f'{label} {score:.2f}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                (0, 255, 0), 2)
 
         # Display the cropped frame with detected objects
         cv2.imshow('Detection Square', roi_frame)
